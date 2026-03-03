@@ -12,7 +12,7 @@ export default function Page() {
   const precio = 3000;
   const total = cantidad * precio;
 
-  const handleCompra = (e) => {
+  const handleCompra = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!nombre || !email) {
       alert("Por favor completa todos los campos");
