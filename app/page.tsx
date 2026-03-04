@@ -6,7 +6,6 @@ export default function Page() {
   const [cantidad, setCantidad] = useState(1);
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
-  const [comprobante, setComprobante] = useState("");
   const [enviado, setEnviado] = useState(false);
 
   const precio = 3000;
@@ -15,37 +14,21 @@ export default function Page() {
   const handleReserva = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!nombre || !email || !comprobante) {
+    if (!nombre || !email) {
       alert("Por favor completa todos los campos");
       return;
     }
 
-    // Validar que sea link de Mercado Pago
-    const esLinkMP = comprobante.includes("mercadopago.com") || comprobante.includes("mpago.la");
-
-    if (!esLinkMP) {
-      alert("El comprobante debe ser un link válido de Mercado Pago");
-      return;
-    }
-
-    const textoPlano = `🎉 NUEVA RESERVA 🎉
-
-` +
-      `Nombre: ${nombre}
-` +
-      `Email: ${email}
-` +
-      `Cantidad: ${cantidad}
-` +
-      `Total: $${total}
-` +
-      `Comprobante: ${comprobante}`;
+    const textoPlano = `🎉 NUEVA RESERVA 🎉\n\n` +
+      `Nombre: ${nombre}\n` +
+      `Email: ${email}\n` +
+      `Cantidad: ${cantidad}\n` +
+      `Total: $${total}`;
 
     const mensaje = encodeURIComponent(textoPlano);
 
     const numero = "5492644558692";
 
-    // Redirige automáticamente a WhatsApp
     window.location.href = `https://wa.me/${numero}?text=${mensaje}`;
 
     setEnviado(true);
@@ -64,10 +47,10 @@ export default function Page() {
         {enviado ? (
           <div className="text-center space-y-3">
             <h2 className="text-lg font-semibold text-green-600">
-              ✅ Reserva enviada
+              ✅ Redirigiendo a WhatsApp...
             </h2>
             <p className="text-sm">
-              Te contactaremos por WhatsApp o Email para confirmar tu entrada una vez verifiquemos el pago.
+              Si no se abrió automáticamente, revisa tu WhatsApp.
             </p>
             <p className="font-semibold">Total a transferir: ${total.toLocaleString()}</p>
           </div>
@@ -89,6 +72,7 @@ export default function Page() {
               <label className="text-sm">Email</label>
               <input
                 type="email"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full border p-2 rounded-lg"
@@ -108,16 +92,8 @@ export default function Page() {
               />
             </div>
 
-            <div>
-              <label className="text-sm">Comprobante (link obligatorio de Mercado Pago)</label>
-              <input
-                type="text"
-                required
-                value={comprobante}
-                onChange={(e) => setComprobante(e.target.value)}
-                className="w-full border p-2 rounded-lg"
-                placeholder="Link o referencia de pago"
-              />
+            <div className="bg-yellow-100 border-2 border-yellow-400 text-yellow-800 p-3 rounded-xl text-center font-bold animate-pulse">
+              ⚠️ NO OLVIDES ENVIAR TU COMPROBANTE POR WHATSAPP ⚠️
             </div>
 
             <div className="text-center font-semibold">
