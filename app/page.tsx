@@ -15,8 +15,16 @@ export default function Page() {
   const handleReserva = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!nombre || !email) {
+    if (!nombre || !email || !comprobante) {
       alert("Por favor completa todos los campos");
+      return;
+    }
+
+    // Validar que sea link de Mercado Pago
+    const esLinkMP = comprobante.includes("mercadopago.com") || comprobante.includes("mpago.la");
+
+    if (!esLinkMP) {
+      alert("El comprobante debe ser un link válido de Mercado Pago");
       return;
     }
 
@@ -31,7 +39,7 @@ export default function Page() {
 ` +
       `Total: $${total}
 ` +
-      `Comprobante: ${comprobante || "No enviado"}`;
+      `Comprobante: ${comprobante}`;
 
     const mensaje = encodeURIComponent(textoPlano);
 
@@ -69,6 +77,7 @@ export default function Page() {
               <label className="text-sm">Nombre completo</label>
               <input
                 type="text"
+                required
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 className="w-full border p-2 rounded-lg"
@@ -100,9 +109,10 @@ export default function Page() {
             </div>
 
             <div>
-              <label className="text-sm">Comprobante (opcional link de transferencia)</label>
+              <label className="text-sm">Comprobante (link obligatorio de Mercado Pago)</label>
               <input
                 type="text"
+                required
                 value={comprobante}
                 onChange={(e) => setComprobante(e.target.value)}
                 className="w-full border p-2 rounded-lg"
