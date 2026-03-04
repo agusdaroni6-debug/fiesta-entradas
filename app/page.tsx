@@ -44,6 +44,11 @@ export default function Page() {
           04/04 · Secret Location
         </p>
 
+        <div className="bg-green-500 text-white text-center p-4 rounded-2xl shadow-lg animate-pulse">
+          <p className="text-sm font-semibold">💸 TRANSFERIR AL ALIAS:</p>
+          <p className="text-2xl font-extrabold tracking-wide">AGUS.DARONI</p>
+        </div>
+
         {enviado ? (
           <div className="text-center space-y-3">
             <h2 className="text-lg font-semibold text-green-600">
