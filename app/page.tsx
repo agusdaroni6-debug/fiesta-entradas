@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import QRCode from "react-qr-code";
 
 export default function Page() {
@@ -9,13 +9,24 @@ export default function Page() {
   const [email, setEmail] = useState("");
   const [enviado, setEnviado] = useState(false);
 
-  // ADMIN
+  // 🔐 ADMIN PROTEGIDO
   const [adminMode, setAdminMode] = useState(false);
-  const [adminPass, setAdminPass] = useState("");
   const [qrGenerado, setQrGenerado] = useState("");
 
   const precio = 3000;
   const total = cantidad * precio;
+
+  // Solo activa admin si la URL tiene ?panel=TUCLAVESECRETA
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const clave = params.get("panel");
+
+      if (clave === "admin4935seguro") {
+        setAdminMode(true);
+      }
+    }
+  }, []);
 
   const handleReserva = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,14 +49,6 @@ export default function Page() {
     setEnviado(true);
   };
 
-  const handleLoginAdmin = () => {
-    if (adminPass === "49350789Bruno") { // 🔐 CAMBIAR ESTA CLAVE
-      setAdminMode(true);
-    } else {
-      alert("Clave incorrecta");
-    }
-  };
-
   const generarQR = () => {
     const codigoUnico = `ENTRADA-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     setQrGenerado(codigoUnico);
@@ -58,26 +61,7 @@ export default function Page() {
           🎉 Fiesta Privé X Suraty
         </h1>
 
-        {/* PANEL ADMIN */}
-        {!adminMode && (
-          <div className="border-t pt-4">
-            <p className="text-xs text-gray-500 text-center">Panel Admin</p>
-            <input
-              type="password"
-              placeholder="Clave admin"
-              value={adminPass}
-              onChange={(e) => setAdminPass(e.target.value)}
-              className="w-full border p-2 rounded-lg mt-2"
-            />
-            <button
-              onClick={handleLoginAdmin}
-              className="w-full bg-black text-white py-2 rounded-xl mt-2"
-            >
-              Ingresar
-            </button>
-          </div>
-        )}
-
+        {/* 🔐 PANEL ADMIN INVISIBLE PARA OTROS */}
         {adminMode && (
           <div className="border-2 border-green-500 p-4 rounded-xl space-y-3">
             <h2 className="text-center font-bold text-green-600">
@@ -171,4 +155,3 @@ export default function Page() {
     </div>
   );
 }
-
