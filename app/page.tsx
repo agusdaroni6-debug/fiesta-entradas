@@ -1,12 +1,18 @@
 'use client'
 
 import { useState } from "react";
+import QRCode from "react-qr-code";
 
 export default function Page() {
   const [cantidad, setCantidad] = useState(1);
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [enviado, setEnviado] = useState(false);
+
+  // ADMIN
+  const [adminMode, setAdminMode] = useState(false);
+  const [adminPass, setAdminPass] = useState("");
+  const [qrGenerado, setQrGenerado] = useState("");
 
   const precio = 3000;
   const total = cantidad * precio;
@@ -26,12 +32,23 @@ export default function Page() {
       `Total: $${total}`;
 
     const mensaje = encodeURIComponent(textoPlano);
-
     const numero = "5492644558692";
 
-    window.location.href = `https://wa.me/${numero}?text=${mensaje}`;
-
+    window.open(`https://wa.me/${numero}?text=${mensaje}`, "_blank");
     setEnviado(true);
+  };
+
+  const handleLoginAdmin = () => {
+    if (adminPass === "49350789Bruno") { // 🔐 CAMBIAR ESTA CLAVE
+      setAdminMode(true);
+    } else {
+      alert("Clave incorrecta");
+    }
+  };
+
+  const generarQR = () => {
+    const codigoUnico = `ENTRADA-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    setQrGenerado(codigoUnico);
   };
 
   return (
@@ -40,80 +57,118 @@ export default function Page() {
         <h1 className="text-2xl font-bold text-center">
           🎉 Fiesta Privé X Suraty
         </h1>
-        <p className="text-center text-sm text-gray-500">
-          04/04 · Secret Location
-        </p>
 
-        <div className="bg-green-500 text-white text-center p-4 rounded-2xl shadow-lg animate-pulse">
-          <p className="text-sm font-semibold">💸 TRANSFERIR AL ALIAS:</p>
-          <p className="text-2xl font-extrabold tracking-wide">AGUS.DARONI</p>
-        </div>
-
-        {enviado ? (
-          <div className="text-center space-y-3">
-            <h2 className="text-lg font-semibold text-green-600">
-              ✅ Redirigiendo a WhatsApp...
-            </h2>
-            <p className="text-sm">
-              Si no se abrió automáticamente, revisa tu WhatsApp.
-            </p>
-            <p className="font-semibold">Total a transferir: ${total.toLocaleString()}</p>
+        {/* PANEL ADMIN */}
+        {!adminMode && (
+          <div className="border-t pt-4">
+            <p className="text-xs text-gray-500 text-center">Panel Admin</p>
+            <input
+              type="password"
+              placeholder="Clave admin"
+              value={adminPass}
+              onChange={(e) => setAdminPass(e.target.value)}
+              className="w-full border p-2 rounded-lg mt-2"
+            />
+            <button
+              onClick={handleLoginAdmin}
+              className="w-full bg-black text-white py-2 rounded-xl mt-2"
+            >
+              Ingresar
+            </button>
           </div>
-        ) : (
-          <form onSubmit={handleReserva} className="space-y-4">
-            <div>
-              <label className="text-sm">Nombre completo</label>
-              <input
-                type="text"
-                required
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className="w-full border p-2 rounded-lg"
-                placeholder="Tu nombre"
-              />
-            </div>
+        )}
 
-            <div>
-              <label className="text-sm">Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border p-2 rounded-lg"
-                placeholder="tu@email.com"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm">Cantidad de entradas</label>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={cantidad}
-                onChange={(e) => setCantidad(Number(e.target.value))}
-                className="w-full border p-2 rounded-lg"
-              />
-            </div>
-
-            <div className="bg-yellow-100 border-2 border-yellow-400 text-yellow-800 p-3 rounded-xl text-center font-bold animate-pulse">
-              ⚠️ NO OLVIDES ENVIAR TU COMPROBANTE POR WHATSAPP ⚠️
-            </div>
-
-            <div className="text-center font-semibold">
-              Total a transferir: ${total.toLocaleString()}
-            </div>
+        {adminMode && (
+          <div className="border-2 border-green-500 p-4 rounded-xl space-y-3">
+            <h2 className="text-center font-bold text-green-600">
+              🔐 PANEL ADMIN ACTIVO
+            </h2>
 
             <button
-              type="submit"
-              className="w-full bg-purple-900 text-white py-3 rounded-2xl text-lg"
+              onClick={generarQR}
+              className="w-full bg-green-600 text-white py-2 rounded-xl"
             >
-              Reservar entrada
+              Confirmar Pago y Generar QR
             </button>
-          </form>
+
+            {qrGenerado && (
+              <div className="flex flex-col items-center space-y-2">
+                <QRCode value={qrGenerado} size={180} />
+                <p className="text-xs break-all">{qrGenerado}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!adminMode && (
+          <>
+            <div className="bg-green-500 text-white text-center p-4 rounded-2xl shadow-lg">
+              <p className="text-sm font-semibold">💸 TRANSFERIR AL ALIAS:</p>
+              <p className="text-2xl font-extrabold tracking-wide">AGUS.DARONI</p>
+            </div>
+
+            {enviado ? (
+              <div className="text-center space-y-4">
+                <h2 className="text-lg font-semibold text-green-600">
+                  ✅ Reserva enviada
+                </h2>
+                <p>Enviá tu comprobante por WhatsApp.</p>
+                <div className="bg-purple-100 border-2 border-purple-400 text-purple-900 p-3 rounded-xl font-semibold">
+                  🎟️ El QR se enviará ÚNICAMENTE después de confirmar tu transferencia.
+                </div>
+                <p className="font-semibold">
+                  Total: ${total.toLocaleString()}
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleReserva} className="space-y-4">
+                <input
+                  type="text"
+                  required
+                  placeholder="Nombre completo"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  className="w-full border p-2 rounded-lg"
+                />
+
+                <input
+                  type="email"
+                  required
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full border p-2 rounded-lg"
+                />
+
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={cantidad}
+                  onChange={(e) => setCantidad(Number(e.target.value))}
+                  className="w-full border p-2 rounded-lg"
+                />
+
+                <div className="bg-yellow-100 border-2 border-yellow-400 text-yellow-800 p-3 rounded-xl text-center font-bold">
+                  ⚠️ NO OLVIDES ENVIAR TU COMPROBANTE POR WHATSAPP ⚠️
+                </div>
+
+                <div className="text-center font-semibold">
+                  Total: ${total.toLocaleString()}
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-purple-900 text-white py-3 rounded-2xl text-lg"
+                >
+                  Reservar entrada
+                </button>
+              </form>
+            )}
+          </>
         )}
       </div>
     </div>
   );
 }
+
