@@ -6,23 +6,41 @@ export default function Page() {
   const [cantidad, setCantidad] = useState(1);
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
-  const [comprado, setComprado] = useState(false);
-  const [mostrarPago, setMostrarPago] = useState(false);
+  const [comprobante, setComprobante] = useState("");
+  const [enviado, setEnviado] = useState(false);
 
   const precio = 3000;
   const total = cantidad * precio;
 
-  const handleCompra = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleReserva = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!nombre || !email) {
       alert("Por favor completa todos los campos");
       return;
     }
-    setMostrarPago(true);
-  };
 
-  const confirmarTransferencia = () => {
-    setComprado(true);
+    const textoPlano = `🎉 NUEVA RESERVA 🎉
+
+` +
+      `Nombre: ${nombre}
+` +
+      `Email: ${email}
+` +
+      `Cantidad: ${cantidad}
+` +
+      `Total: $${total}
+` +
+      `Comprobante: ${comprobante || "No enviado"}`;
+
+    const mensaje = encodeURIComponent(textoPlano);
+
+    const numero = "5492644558692";
+
+    // Redirige automáticamente a WhatsApp
+    window.location.href = `https://wa.me/${numero}?text=${mensaje}`;
+
+    setEnviado(true);
   };
 
   return (
@@ -35,37 +53,18 @@ export default function Page() {
           04/04 · Secret Location
         </p>
 
-        {comprado ? (
+        {enviado ? (
           <div className="text-center space-y-3">
-            <h2 className="text-xl font-semibold">✅ ¡Entrada Confirmada!</h2>
-            <p>
-              Gracias {nombre}, recibimos tu pago por {cantidad} entrada(s).
+            <h2 className="text-lg font-semibold text-green-600">
+              ✅ Reserva enviada
+            </h2>
+            <p className="text-sm">
+              Te contactaremos por WhatsApp o Email para confirmar tu entrada una vez verifiquemos el pago.
             </p>
-            <p className="text-sm text-gray-500">
-              Te enviaremos tu entrada a {email}
-            </p>
-          </div>
-        ) : mostrarPago ? (
-          <div className="space-y-4 text-center">
-            <h2 className="text-lg font-semibold">💳 Paso final: Transferencia</h2>
-            <p>Para recibir tu entrada debes transferir el total de</p>
-            <p className="text-xl font-bold">${total.toLocaleString()}</p>
-            <p>al alias de Mercado Pago:</p>
-            <div className="bg-gray-100 p-3 rounded-xl font-mono text-lg">
-              agus.daroni
-            </div>
-            <p className="text-sm text-gray-500">
-              Una vez realizada la transferencia, presiona el botón de abajo.
-            </p>
-            <button
-              onClick={confirmarTransferencia}
-              className="w-full bg-black text-white py-3 rounded-2xl text-lg"
-            >
-              Ya Transferí
-            </button>
+            <p className="font-semibold">Total a transferir: ${total.toLocaleString()}</p>
           </div>
         ) : (
-          <form onSubmit={handleCompra} className="space-y-4">
+          <form onSubmit={handleReserva} className="space-y-4">
             <div>
               <label className="text-sm">Nombre completo</label>
               <input
@@ -100,15 +99,26 @@ export default function Page() {
               />
             </div>
 
+            <div>
+              <label className="text-sm">Comprobante (opcional link de transferencia)</label>
+              <input
+                type="text"
+                value={comprobante}
+                onChange={(e) => setComprobante(e.target.value)}
+                className="w-full border p-2 rounded-lg"
+                placeholder="Link o referencia de pago"
+              />
+            </div>
+
             <div className="text-center font-semibold">
-              Total: ${total.toLocaleString()}
+              Total a transferir: ${total.toLocaleString()}
             </div>
 
             <button
               type="submit"
               className="w-full bg-purple-900 text-white py-3 rounded-2xl text-lg"
             >
-              Continuar
+              Reservar entrada
             </button>
           </form>
         )}
