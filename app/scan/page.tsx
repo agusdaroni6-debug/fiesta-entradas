@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { supabase } from "../../lib/supabase"
 import { Html5Qrcode } from "html5-qrcode"
+import { supabase } from "../../lib/supabase"
+import { useEffect, useRef, useState } from "react"
 
 export default function ScanPage() {
   const scannerRef = useRef<Html5Qrcode | null>(null)
