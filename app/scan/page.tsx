@@ -2,52 +2,50 @@
 
 import { useEffect, useRef, useState } from "react"
 import { supabase } from "../../lib/supabase"
-
-// IMPORT dinámico para que no falle en SSR
-let Html5Qrcode: any
-if (typeof window !== "undefined") {
-  Html5Qrcode = require("html5-qrcode").Html5Qrcode
-}
+import { Html5QrcodeWrapper } from "./Html5QrcodeWrapper"
 
 export default function ScanPage() {
   const scannerRef = useRef<any | null>(null)
   const [resultado, setResultado] = useState("")
 
   useEffect(() => {
-    if (!Html5Qrcode) return // Asegura que solo corra en navegador
+    const startScanner = async () => {
+      const Html5Qrcode = await Html5QrcodeWrapper
+      const scanner = new Html5Qrcode("reader")
+      scannerRef.current = scanner
 
-    const scanner = new Html5Qrcode("reader")
-    scannerRef.current = scanner
+      scanner
+        .start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: 250 },
+          async (decodedText: string) => {
+            const { data, error } = await supabase
+              .from("entradas")
+              .select("*")
+              .eq("codigo", decodedText)
+              .single()
 
-    scanner
-      .start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        async (decodedText: string) => {
-          const { data, error } = await supabase
-            .from("entradas")
-            .select("*")
-            .eq("codigo", decodedText)
-            .single()
+            if (error || !data) {
+              setResultado("QR inválido ❌")
+              return
+            }
 
-          if (error || !data) {
-            setResultado("QR inválido ❌")
-            return
+            if (data.usado) {
+              setResultado("Entrada ya usada ⚠️")
+              return
+            }
+
+            await supabase.from("entradas").update({ usado: true }).eq("id", data.id)
+            setResultado("Entrada válida ✅")
+          },
+          (errorMessage: string) => {
+            console.warn(errorMessage)
           }
+        )
+        .catch((err: any) => console.error(err))
+    }
 
-          if (data.usado) {
-            setResultado("Entrada ya usada ⚠️")
-            return
-          }
-
-          await supabase.from("entradas").update({ usado: true }).eq("id", data.id)
-          setResultado("Entrada válida ✅")
-        },
-        (errorMessage: string) => {
-          console.warn(errorMessage)
-        }
-      )
-      .catch((err: any) => console.error(err))
+    startScanner()
 
     return () => {
       scannerRef.current?.stop().catch(() => {})
