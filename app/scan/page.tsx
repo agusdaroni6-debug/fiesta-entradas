@@ -1,42 +1,39 @@
 "use client"
 
-import { Html5Qrcode } from "html5-qrcode"
-import { supabase } from "../../lib/supabase"
 import { useEffect, useRef, useState } from "react"
+import { supabase } from "../../lib/supabase"
+import { Html5Qrcode } from "html5-qrcode"
 
 export default function ScanPage() {
   const scannerRef = useRef<Html5Qrcode | null>(null)
-  const [mensaje, setMensaje] = useState("Apunta la cámara al QR")
+  const [resultado, setResultado] = useState("")
 
   useEffect(() => {
-    const startScanner = async () => {
-      const html5QrCode = new Html5Qrcode("reader")
-      scannerRef.current = html5QrCode
+    const scanner = new Html5Qrcode("reader")
+    scannerRef.current = scanner
 
-      await html5QrCode.start(
+    scanner
+      .start(
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: 250
+          qrbox: 250,
         },
         async (decodedText) => {
-          // Cada vez que se escanea un QR
-          const codigo = decodedText.replace("https://fiesta-entradas.vercel.app/validar?codigo=", "")
-
-          // Buscar la entrada en Supabase
+          // Validar en Supabase
           const { data, error } = await supabase
             .from("entradas")
             .select("*")
-            .eq("codigo", codigo)
+            .eq("codigo", decodedText)
             .single()
 
           if (error || !data) {
-            setMensaje("🔴 QR inválido")
+            setResultado("QR inválido")
             return
           }
 
           if (data.usado) {
-            setMensaje("🔴 Entrada ya usada")
+            setResultado("Entrada ya usada")
             return
           }
 
@@ -44,17 +41,15 @@ export default function ScanPage() {
           await supabase
             .from("entradas")
             .update({ usado: true })
-            .eq("codigo", codigo)
+            .eq("id", data.id)
 
-          setMensaje("🟢 Entrada válida, ¡bienvenido!")
+          setResultado("Entrada válida ✅")
         },
         (errorMessage) => {
-          // Callback de error, podemos ignorarlo
+          console.warn(errorMessage)
         }
       )
-    }
-
-    startScanner()
+      .catch((err) => console.error(err))
 
     return () => {
       scannerRef.current?.stop().catch(() => {})
@@ -62,10 +57,10 @@ export default function ScanPage() {
   }, [])
 
   return (
-    <main style={{padding:40}}>
-      <h1>Escáner de Entradas 🎫</h1>
-      <div id="reader" style={{width:300, height:300, marginTop:20}} />
-      <p style={{marginTop:20, fontSize:20}}>{mensaje}</p>
-    </main>
+    <div style={{ padding: 20 }}>
+      <h1>Escaneo de Entradas 🎫</h1>
+      <div id="reader" style={{ width: 300, height: 300 }}></div>
+      {resultado && <p>{resultado}</p>}
+    </div>
   )
 }

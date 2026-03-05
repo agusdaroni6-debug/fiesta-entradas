@@ -10,49 +10,36 @@ export default function Page() {
 
   const generarEntrada = async () => {
     const nuevoCodigo = crypto.randomUUID()
-
-    const { error } = await supabase
-      .from("entradas")
-      .insert({ codigo: nuevoCodigo, usado: false })
-
+    const { error } = await supabase.from("entradas").insert({
+      codigo: nuevoCodigo,
+      usado: false,
+    })
     if (error) {
+      alert("Error al crear entrada")
       console.log(error)
-      alert("Error al generar entrada")
       return
     }
-
-    // Guardamos **el link completo** para WhatsApp
-    const linkQR = `https://fiesta-entradas.vercel.app/validar?codigo=${nuevoCodigo}`
-
     setCodigo(nuevoCodigo)
-    setQr(linkQR)
+    setQr(nuevoCodigo)
   }
 
   return (
     <main style={{ padding: 40 }}>
       <h1>Panel de Entradas 🎟️</h1>
+      <button onClick={generarEntrada}>Generar nueva entrada</button>
 
-      <button onClick={generarEntrada} style={{ padding: "10px 20px", fontSize: 16 }}>
-        Generar nueva entrada
-      </button>
-
-      {/* Esto solo aparece si qr tiene valor */}
-      {qr ? (
+      {qr && (
         <div style={{ marginTop: 30 }}>
           <QRCode value={qr} />
-          <p style={{ fontWeight: "bold", marginTop: 10 }}>{codigo}</p>
-
+          <p>{codigo}</p>
           <a
-            href={`https://wa.me/?text=🎟️ Tu entrada para la fiesta:%0A${qr}`}
+            href={`https://api.whatsapp.com/send?text=${qr}`}
             target="_blank"
+            rel="noopener noreferrer"
           >
-            <button style={{ marginTop: 20, padding: "10px 15px", fontSize: 16 }}>
-              Enviar por WhatsApp
-            </button>
+            Enviar por WhatsApp
           </a>
         </div>
-      ) : (
-        <p style={{ marginTop: 20 }}>Presioná “Generar nueva entrada” para ver el QR y el botón</p>
       )}
     </main>
   )
