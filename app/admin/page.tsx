@@ -1,35 +1,49 @@
-'use client'
+"use client"
 
-import { useState } from "react";
-import QRCode from "react-qr-code";
+import { useEffect, useState } from "react"
+import { supabase } from "../../lib/supabase"
 
-export default function Admin() {
-  const [qr, setQr] = useState("");
+export default function AdminPanel() {
 
-  const generarQR = () => {
-    const codigo = `ENTRADA-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-    setQr(codigo);
-  };
+  const [total, setTotal] = useState(0)
+  const [usadas, setUsadas] = useState(0)
+  const [restantes, setRestantes] = useState(0)
+
+  const cargarDatos = async () => {
+
+    const { data } = await supabase
+      .from("entradas")
+      .select("*")
+
+    if (!data) return
+
+    const totalEntradas = data.length
+    const usadasEntradas = data.filter(e => e.usado).length
+
+    setTotal(totalEntradas)
+    setUsadas(usadasEntradas)
+    setRestantes(totalEntradas - usadasEntradas)
+  }
+
+  useEffect(() => {
+    cargarDatos()
+  }, [])
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center space-y-6">
-        <h1 className="text-2xl font-bold">🔐 Panel Admin</h1>
+    <main style={{padding:40}}>
 
-        <button
-          onClick={generarQR}
-          className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold"
-        >
-          Confirmar Pago y Generar QR
-        </button>
+      <h1>Panel del Evento 🎉</h1>
 
-        {qr && (
-          <div className="flex flex-col items-center space-y-3">
-            <QRCode value={qr} size={200} />
-            <p className="text-xs break-all">{qr}</p>
-          </div>
-        )}
+      <div style={{marginTop:30,fontSize:22}}>
+        <p>🎟️ Entradas generadas: {total}</p>
+        <p>✅ Entradas usadas: {usadas}</p>
+        <p>🚪 Entradas restantes: {restantes}</p>
       </div>
-    </div>
-  );
+
+      <button onClick={cargarDatos} style={{marginTop:20}}>
+        Actualizar datos
+      </button>
+
+    </main>
+  )
 }

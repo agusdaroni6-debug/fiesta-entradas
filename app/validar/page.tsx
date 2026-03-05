@@ -9,23 +9,31 @@ export default function Page() {
   const [qr, setQr] = useState("")
 
   const generarEntrada = async () => {
-    const nuevoCodigo = crypto.randomUUID()
+    try {
+      const nuevoCodigo = crypto.randomUUID()
 
-    const { error } = await supabase
-      .from("entradas")
-      .insert({ codigo: nuevoCodigo, usado: false })
+      const { error } = await supabase
+        .from("entradas")
+        .insert({
+          codigo: nuevoCodigo,
+          usado: false
+        })
 
-    if (error) {
-      console.log(error)
-      alert("Error al generar entrada")
-      return
+      if (error) {
+        console.log(error)
+        alert("Error al generar entrada")
+        return
+      }
+
+      // Creamos el link completo de la entrada
+      const linkQR = `https://fiesta-entradas.vercel.app/validar?codigo=${nuevoCodigo}`
+
+      setCodigo(nuevoCodigo)
+      setQr(linkQR)
+    } catch (err) {
+      console.log(err)
+      alert("Ocurrió un error inesperado")
     }
-
-    // Guardamos **el link completo** para WhatsApp
-    const linkQR = `https://fiesta-entradas.vercel.app/validar?codigo=${nuevoCodigo}`
-
-    setCodigo(nuevoCodigo)
-    setQr(linkQR)
   }
 
   return (
@@ -36,10 +44,11 @@ export default function Page() {
         Generar nueva entrada
       </button>
 
-      {/* Esto solo aparece si qr tiene valor */}
-      {qr ? (
+      {/* Esto se muestra solo si hay un QR generado */}
+      {qr && (
         <div style={{ marginTop: 30 }}>
           <QRCode value={qr} />
+
           <p style={{ fontWeight: "bold", marginTop: 10 }}>{codigo}</p>
 
           <a
@@ -51,8 +60,6 @@ export default function Page() {
             </button>
           </a>
         </div>
-      ) : (
-        <p style={{ marginTop: 20 }}>Presioná “Generar nueva entrada” para ver el QR y el botón</p>
       )}
     </main>
   )
