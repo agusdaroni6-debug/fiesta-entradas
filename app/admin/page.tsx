@@ -1,49 +1,50 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { supabase } from "../../lib/supabase"
+import QRCode from "react-qr-code"
 
-export default function AdminPanel() {
+export default function AdminPage() {
+  const [codigo, setCodigo] = useState("")
+  const [qr, setQr] = useState("")
 
-  const [total, setTotal] = useState(0)
-  const [usadas, setUsadas] = useState(0)
-  const [restantes, setRestantes] = useState(0)
+  const generarEntrada = async () => {
+    const nuevoCodigo = crypto.randomUUID()
 
-  const cargarDatos = async () => {
+    const { error } = await supabase.from("entradas").insert({
+      codigo: nuevoCodigo,
+      usado: false
+    })
 
-    const { data } = await supabase
-      .from("entradas")
-      .select("*")
+    if (error) {
+      alert("Error al crear entrada")
+      console.log(error)
+      return
+    }
 
-    if (!data) return
-
-    const totalEntradas = data.length
-    const usadasEntradas = data.filter(e => e.usado).length
-
-    setTotal(totalEntradas)
-    setUsadas(usadasEntradas)
-    setRestantes(totalEntradas - usadasEntradas)
+    setCodigo(nuevoCodigo)
+    setQr(nuevoCodigo)
   }
 
-  useEffect(() => {
-    cargarDatos()
-  }, [])
+  const shareWhatsapp = () => {
+    const url = `https://fiesta-entradas.vercel.app/scan?codigo=${codigo}`
+    const whatsappUrl = `https://api.whatsapp.com/send?text=Tu+entrada:+${encodeURIComponent(url)}`
+    window.open(whatsappUrl, "_blank")
+  }
 
   return (
-    <main style={{padding:40}}>
+    <main style={{ padding: 40 }}>
+      <h1>Panel de Entradas 🎟️</h1>
 
-      <h1>Panel del Evento 🎉</h1>
+      <button onClick={generarEntrada}>Generar nueva entrada</button>
 
-      <div style={{marginTop:30,fontSize:22}}>
-        <p>🎟️ Entradas generadas: {total}</p>
-        <p>✅ Entradas usadas: {usadas}</p>
-        <p>🚪 Entradas restantes: {restantes}</p>
-      </div>
-
-      <button onClick={cargarDatos} style={{marginTop:20}}>
-        Actualizar datos
-      </button>
-
+      {qr && (
+        <div style={{ marginTop: 30 }}>
+          <QRCode value={qr} />
+          <p>{codigo}</p>
+          <button onClick={shareWhatsapp}>Compartir por WhatsApp</button>
+        </div>
+      )}
     </main>
   )
 }

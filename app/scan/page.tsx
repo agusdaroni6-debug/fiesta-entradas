@@ -2,15 +2,16 @@
 
 import { useEffect, useRef, useState } from "react"
 import { supabase } from "../../lib/supabase"
-import { Html5QrcodeWrapper } from "./Html5QrcodeWrapper"
 
 export default function ScanPage() {
-  const scannerRef = useRef<any | null>(null)
+  const scannerRef = useRef<any>(null)
   const [resultado, setResultado] = useState("")
 
   useEffect(() => {
     const startScanner = async () => {
-      const Html5Qrcode = await Html5QrcodeWrapper
+      if (typeof window === "undefined") return
+
+      const { Html5Qrcode } = await import("html5-qrcode") // Import dinámico
       const scanner = new Html5Qrcode("reader")
       scannerRef.current = scanner
 
